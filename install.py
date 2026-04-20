@@ -126,25 +126,8 @@ def step_credentials(py: Path) -> dict[str, str]:
                 "MD_KEY": existing["MD_KEY"],
             }
 
-    mode = ask_choice(
-        "如何获取凭据？",
-        [
-            ("1", "浏览器 OAuth 一键授权（推荐）"),
-            ("2", "手动输入已有的 MD_ACCOUNT_ID / MD_KEY"),
-        ],
-        default="1",
-    )
-
-    if mode == "2":
-        account_id = ask("MD_ACCOUNT_ID（明道账号 UUID）")
-        key = ask("MD_KEY（接入 key）")
-        write_env({"MD_ACCOUNT_ID": account_id, "MD_KEY": key})
-        ok(f"已写入 {ENV_FILE}")
-        return {"MD_ACCOUNT_ID": account_id, "MD_KEY": key}
-
-    # OAuth 流
-    info("即将打开浏览器隐身窗口，请在里面登录目标明道账号并同意授权")
-    input("按回车继续… ")
+    info("即将打开浏览器隐身窗口，请在里面登录目标明道账号并同意授权。")
+    info("授权成功后，脚本会自动把凭据写入 .env。")
     auth_bin = VENV / "bin" / "mdcloud-auth"
     try:
         run([str(auth_bin)], cwd=str(ROOT))
