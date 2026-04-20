@@ -112,48 +112,14 @@ _CALLBACK_HTML_ERR = """<!doctype html>
 
 
 def _open_incognito(url: str) -> str:
-    """尝试用隐身/无痕模式打开 URL，返回实际使用的方式描述。
-
-    优先顺序 Chrome → Edge → Firefox → 默认浏览器（+剪贴板提示）。
-    """
-    plat = sys.platform
-    attempts: list[list[str]] = []
-    if plat == "darwin":
-        attempts = [
-            ["open", "-na", "Google Chrome", "--args", "--incognito", url],
-            ["open", "-na", "Microsoft Edge", "--args", "--inprivate", url],
-            ["open", "-na", "Firefox", "--args", "--private-window", url],
-        ]
-    elif plat.startswith("win"):
-        attempts = [
-            ["cmd", "/c", "start", "", "chrome", "--incognito", url],
-            ["cmd", "/c", "start", "", "msedge", "--inprivate", url],
-            ["cmd", "/c", "start", "", "firefox", "--private-window", url],
-        ]
-    else:  # linux / bsd
-        for exe, flag in [
-            ("google-chrome", "--incognito"),
-            ("chromium", "--incognito"),
-            ("microsoft-edge", "--inprivate"),
-            ("firefox", "--private-window"),
-        ]:
-            if shutil.which(exe):
-                attempts.append([exe, flag, url])
-
-    for cmd in attempts:
-        try:
-            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return f"{cmd[0]} (incognito)"
-        except (FileNotFoundError, OSError):
-            continue
-
-    # 回退：默认浏览器 + 剪贴板
+    """用系统默认浏览器打开 URL（复用已登录会话）。"""
     try:
         webbrowser.open(url)
     except Exception:
-        pass
+        _copy_to_clipboard(url)
+        return "clipboard (manual open required)"
     _copy_to_clipboard(url)
-    return "default browser (manual incognito required)"
+    return "default browser"
 
 
 def _copy_to_clipboard(text: str) -> bool:
@@ -271,11 +237,10 @@ def run_auth_flow(project_root: Path | None = None) -> dict[str, str]:
 
     print(f"→ 监听本地回调 {redirect_uri}")
     method = _open_incognito(authorize_url)
-    print(f"→ 已用 {method} 打开明道授权页")
-    if "default browser" in method:
-        print("  ⚠️  未检测到 Chrome/Edge/Firefox，请手动在隐身窗口里打开：")
+    print(f"→ 已用 {method} 打开明道授权页（复用现有浏览器登录态）")
+    if "clipboard" in method:
+        print("  ⚠️  无法自动打开浏览器，请手动访问（URL 已复制到剪贴板）：")
         print(f"     {authorize_url}")
-        print("  （URL 已尝试复制到剪贴板）")
     print("→ 请在浏览器中登录目标明道账号并同意授权…")
 
     # 等回调，最长 5 分钟
