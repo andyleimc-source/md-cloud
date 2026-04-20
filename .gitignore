@@ -2,6 +2,7 @@
 .env
 *.secret
 *.key
+.mcp.json
 
 # Python
 __pycache__/
