@@ -29,8 +29,10 @@ MCP Server for Mingdao Collaboration-era v1 API — **cloud-token mode**, no OAu
 git clone https://github.com/andyleimc-source/md-cloud.git
 cd md-cloud
 python3 -m venv .venv
-.venv/bin/pip install -e .
+.venv/bin/pip install .
 ```
+
+> Python 3.14+ 用户请用 `pip install .`（非 editable）。Python 3.14 会跳过以 `__` 开头的 `.pth` 文件，而 setuptools 的 `pip install -e .` 恰好生成 `__editable__.*.pth`，导致 `ModuleNotFoundError: No module named 'md_cloud'`。Python ≤ 3.13 两种方式都可以。
 
 ### 2. 获取凭据（二选一）
 
