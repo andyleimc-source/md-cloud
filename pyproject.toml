@@ -15,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 mdcloud = "md_cloud.server:main"
+mdcloud-auth = "md_cloud.cli_auth:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

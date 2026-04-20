@@ -32,28 +32,36 @@ python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
 
-### 2. 配置 .env
+### 2. 获取凭据（二选一）
+
+**推荐：一键浏览器授权**
 
 ```bash
-cp .env.example .env
+.venv/bin/mdcloud-auth
 ```
 
-编辑 `.env`：
+命令会在本地 `127.0.0.1:8964` 起一个临时回调 server，然后用**隐身/无痕窗口**打开明道授权页。你在浏览器里登录目标明道账号并同意后，脚本自动把 `MD_ACCOUNT_ID` 和 `MD_KEY` 写入当前目录的 `.env`。
+
+> 优先调起 Chrome → Edge → Firefox 的隐身模式（避免串到已登录的其它账号）。若都没找到，会回退到默认浏览器并把授权 URL 复制到剪贴板，你自己打开隐身窗口粘贴即可。
+
+**备用：手动填 `.env`**
+
+若由运营方直接分发了 key，直接 `cp .env.example .env` 然后填：
 
 ```env
 MD_ACCOUNT_ID=你的明道账号 UUID
 MD_KEY=你的接入 key
 
-# 可选,跑自己的 hook 后端时才需要:
+# 可选,自部署 hook 时才需要:
 # MD_APPNAME=mdcloud
 # MD_HOOK_URL=https://api.mingdao.com/workflow/hooks2/xxx
+# MD_APP_KEY=<自定义 OAuth 应用 app_key>
+# MD_REGISTER_URL=<自定义注册 hook URL>
+# MD_CALLBACK_PORT=8964
 ```
 
-> `MD_ACCOUNT_ID` 是你在明道云的 account_id（UUID 格式）。
-> `MD_KEY` 是 md-cloud 运营方分配给你的接入凭据。
-> 这两个字段共同确定一个明道账号；服务端用此映射到该账号的 OAuth token，并自动每日刷新。
->
-> `MD_APPNAME` / `MD_HOOK_URL` 默认指向官方 mdcloud hook，**绝大多数用户不需要改**。仅当你部署了自己的 token 发放后端时才覆盖。
+> 服务端用 `MD_ACCOUNT_ID + MD_KEY` 映射到该账号的 OAuth token，自动每日刷新。
+> `MD_APP*` / `MD_*_URL` 类变量绝大多数用户不需要改，只有自部署 hook 后端时才覆盖。
 
 ### 3. 在 Claude Code 中使用
 
@@ -114,6 +122,29 @@ MD_KEY=你的接入 key
 | `Missing MD_ACCOUNT_ID or MD_KEY` | .env 没配或 env 没注入 | 检查 .env / `.mcp.json` 的 env 字段 |
 | `Token endpoint returned no token` | 服务端拒绝（key 不对、account_id 不存在、appname 拼错） | 确认 key 与 account_id；联系运营方 |
 | HTTP 401 | token 失效（极少见，服务端日刷新） | 重启 MCP server 强制清缓存 |
+
+## 注册 hook 协议（给自部署运营方）
+
+`mdcloud-auth` 拿到 `code` 后会 POST 到 `MD_REGISTER_URL`（默认 `REGISTER_URL_DEFAULT`），协议：
+
+**请求**：
+
+```json
+{ "code": "xxx", "redirect_uri": "http://localhost:8964/callback" }
+```
+
+**服务端应做**：
+
+1. 用 `{app_key, app_secret, code, redirect_uri, grant_type=authorization_code}` 调 `https://api.mingdao.com/oauth2/access_token`
+2. 用返回的 `access_token` 调 `/v1/passport/get_detail` 拿 `account_id`
+3. Upsert `{account_id → refresh_token}` 到映射表；为该 `account_id` 复用或新生成一个 `key`
+4. 返回：
+
+```json
+{ "account_id": "...", "key": "..." }
+```
+
+后续该 `account_id` 的 token 刷新由你现有的日刷 hook 负责。
 
 ## API 参考
 
