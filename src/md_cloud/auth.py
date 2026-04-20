@@ -16,8 +16,8 @@ APPNAME_DEFAULT = "mdcloud"
 
 # OAuth 自助注册（mdcloud-auth 命令使用）
 APP_KEY_DEFAULT = "6A228C49DAC4"
-CALLBACK_PORT_DEFAULT = 8964
-REGISTER_URL_DEFAULT = "https://api.mingdao.com/workflow/hooks2/REPLACE_WITH_REGISTER_HOOK_ID"
+CALLBACK_PORT_DEFAULT = 8080
+REGISTER_URL_DEFAULT = "https://api.mingdao.com/workflow/hooks2/NjlkYzQ5NGIwMzM0NzkwYjg4MWY4NTk5"
 
 _cache: dict[str, Any] = {"token": "", "expires_at": 0}
 

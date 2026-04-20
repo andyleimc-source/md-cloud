@@ -23,51 +23,38 @@ MCP Server for Mingdao Collaboration-era v1 API — **cloud-token mode**, no OAu
 
 ## 快速开始
 
-### 1. 安装
-
 ```bash
 git clone https://github.com/andyleimc-source/md-cloud.git
 cd md-cloud
-python3 -m venv .venv
-.venv/bin/pip install .
+python3 install.py
 ```
 
-> Python 3.14+ 用户请用 `pip install .`（非 editable）。Python 3.14 会跳过以 `__` 开头的 `.pth` 文件，而 setuptools 的 `pip install -e .` 恰好生成 `__editable__.*.pth`，导致 `ModuleNotFoundError: No module named 'md_cloud'`。Python ≤ 3.13 两种方式都可以。
+一条命令走完全流程，脚本会引导你：
 
-### 2. 获取凭据（二选一）
+1. 创建 `.venv` 并安装依赖
+2. 获取 `MD_ACCOUNT_ID` / `MD_KEY`（默认走浏览器隐身窗口 OAuth 授权；也可手动输入已有凭据）
+3. 写入 `.env`
+4. 可选把 md-cloud 注册到 Claude Code（项目级 `.mcp.json` 或调 `claude mcp add` 写到用户级，或两个都配）
+5. 跑一次 token 换取验证
 
-**推荐：一键浏览器授权**
+完成后重启 Claude Code，就能直接对话操作明道：
+
+- "帮我看看张三最近发了什么动态"
+- "创建一个明天上午 10 点的日程，邀请李四"
+- "给王五发一条消息说下午 3 点开会"
+- "列出公司所有部门"
+
+### 高阶：手动安装
+
+不想跑 `install.py` 的老用户看这里：
 
 ```bash
-.venv/bin/mdcloud-auth
+python3 -m venv .venv
+.venv/bin/pip install .        # Python 3.14+ 必须用非 editable
+.venv/bin/mdcloud-auth          # 或手动 cp .env.example .env 填 MD_ACCOUNT_ID / MD_KEY
 ```
 
-命令会在本地 `127.0.0.1:8964` 起一个临时回调 server，然后用**隐身/无痕窗口**打开明道授权页。你在浏览器里登录目标明道账号并同意后，脚本自动把 `MD_ACCOUNT_ID` 和 `MD_KEY` 写入当前目录的 `.env`。
-
-> 优先调起 Chrome → Edge → Firefox 的隐身模式（避免串到已登录的其它账号）。若都没找到，会回退到默认浏览器并把授权 URL 复制到剪贴板，你自己打开隐身窗口粘贴即可。
-
-**备用：手动填 `.env`**
-
-若由运营方直接分发了 key，直接 `cp .env.example .env` 然后填：
-
-```env
-MD_ACCOUNT_ID=你的明道账号 UUID
-MD_KEY=你的接入 key
-
-# 可选,自部署 hook 时才需要:
-# MD_APPNAME=mdcloud
-# MD_HOOK_URL=https://api.mingdao.com/workflow/hooks2/xxx
-# MD_APP_KEY=<自定义 OAuth 应用 app_key>
-# MD_REGISTER_URL=<自定义注册 hook URL>
-# MD_CALLBACK_PORT=8964
-```
-
-> 服务端用 `MD_ACCOUNT_ID + MD_KEY` 映射到该账号的 OAuth token，自动每日刷新。
-> `MD_APP*` / `MD_*_URL` 类变量绝大多数用户不需要改，只有自部署 hook 后端时才覆盖。
-
-### 3. 在 Claude Code 中使用
-
-`.mcp.json`（项目级）或通过 `claude mcp add`（用户级）：
+然后在 `.mcp.json`（项目级）或用 `claude mcp add`（用户级）注册：
 
 ```json
 {
@@ -85,14 +72,15 @@ MD_KEY=你的接入 key
 }
 ```
 
-> 把 env 写在 `.mcp.json` 里就不用 `.env` 文件了，二选一。
+可选环境变量（几乎不用动）：
 
-重启 Claude Code，就能直接对话操作明道：
-
-- "帮我看看张三最近发了什么动态"
-- "创建一个明天上午 10 点的日程，邀请李四"
-- "给王五发一条消息说下午 3 点开会"
-- "列出公司所有部门"
+```env
+# MD_APPNAME=mdcloud
+# MD_HOOK_URL=https://api.mingdao.com/workflow/hooks2/xxx
+# MD_APP_KEY=<自定义 OAuth 应用 app_key>
+# MD_REGISTER_URL=<自定义注册 hook URL>
+# MD_CALLBACK_PORT=8080
+```
 
 ## 与 mdold 的差异
 
