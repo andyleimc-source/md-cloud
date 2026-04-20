@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 BASE_API_URL = "https://api.mingdao.com"
-HOOK_URL = "https://api.mingdao.com/workflow/hooks2/NjlkYzQ5NGIwMzM0NzkwYjg4MWY4NTk5"
-APPNAME = "mdcloud"
+HOOK_URL_DEFAULT = "https://api.mingdao.com/workflow/hooks2/NjlkYzQ5NGIwMzM0NzkwYjg4MWY4NTk5"
+APPNAME_DEFAULT = "mdcloud"
 
 _cache: dict[str, Any] = {"token": "", "expires_at": 0}
 
@@ -45,16 +45,18 @@ def ensure_access_token() -> str:
     _load_env()
     account_id = os.getenv("MD_ACCOUNT_ID", "").strip()
     key = os.getenv("MD_KEY", "").strip()
+    appname = os.getenv("MD_APPNAME", APPNAME_DEFAULT).strip()
+    hook_url = os.getenv("MD_HOOK_URL", HOOK_URL_DEFAULT).strip()
     if not account_id or not key:
         raise RuntimeError(
             "Missing MD_ACCOUNT_ID or MD_KEY. Set them in .env or environment."
         )
 
     body = json.dumps(
-        {"account_id": account_id, "key": key, "appname": APPNAME}
+        {"account_id": account_id, "key": key, "appname": appname}
     ).encode("utf-8")
     req = urllib.request.Request(
-        HOOK_URL,
+        hook_url,
         data=body,
         headers={
             "Content-Type": "application/json",

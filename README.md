@@ -43,11 +43,17 @@ cp .env.example .env
 ```env
 MD_ACCOUNT_ID=你的明道账号 UUID
 MD_KEY=你的接入 key
+
+# 可选,跑自己的 hook 后端时才需要:
+# MD_APPNAME=mdcloud
+# MD_HOOK_URL=https://api.mingdao.com/workflow/hooks2/xxx
 ```
 
 > `MD_ACCOUNT_ID` 是你在明道云的 account_id（UUID 格式）。
 > `MD_KEY` 是 md-cloud 运营方分配给你的接入凭据。
 > 这两个字段共同确定一个明道账号；服务端用此映射到该账号的 OAuth token，并自动每日刷新。
+>
+> `MD_APPNAME` / `MD_HOOK_URL` 默认指向官方 mdcloud hook，**绝大多数用户不需要改**。仅当你部署了自己的 token 发放后端时才覆盖。
 
 ### 3. 在 Claude Code 中使用
 
