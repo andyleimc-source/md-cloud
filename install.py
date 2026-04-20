@@ -126,7 +126,7 @@ def step_credentials(py: Path) -> dict[str, str]:
                 "MD_KEY": existing["MD_KEY"],
             }
 
-    info("即将打开浏览器隐身窗口，请在里面登录目标明道账号并同意授权。")
+    info("即将打开系统默认浏览器，请确认当前登录的是你要授权的明道账号。")
     info("授权成功后，脚本会自动把凭据写入 .env。")
     auth_bin = VENV / "bin" / "mdcloud-auth"
     try:
@@ -160,13 +160,18 @@ def step_ping(py: Path, creds: dict[str, str]) -> None:
 
 def step_mcp_config(py: Path, creds: dict[str, str]) -> None:
     info("步骤 4/5：配置 Claude Code MCP Server")
+    print("\nmd-cloud 需要注册到 Claude Code 才能被识别和调用。有两种注册范围：")
+    print("  • 用户级：在任何目录打开 Claude Code 都能用 md-cloud（推荐，装一次全局生效）")
+    print("  • 项目级：只在「当前目录」打开 Claude Code 时才能用（想把配置随仓库分发时用）")
+    print("  • 两个都配：全局可用，同时把配置也提交到当前仓库")
+    print("  • 跳过：你自己手动搞，脚本会打印手动命令给你")
     mode = ask_choice(
-        "配置到哪里？",
+        "选择注册范围",
         [
-            ("1", "项目级（在当前目录写 .mcp.json）"),
-            ("2", "用户级（调用 claude mcp add 全局生效）"),
-            ("3", "两个都配"),
-            ("4", "跳过，我自己来"),
+            ("1", "项目级 —— 只在当前目录（在此目录写 .mcp.json）"),
+            ("2", "用户级 —— 全局所有目录可用（调用 claude mcp add，推荐）"),
+            ("3", "两个都配 —— 全局 + 当前目录"),
+            ("4", "跳过 —— 我自己手动配"),
         ],
         default="2",
     )
